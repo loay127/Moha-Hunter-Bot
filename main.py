@@ -1,57 +1,38 @@
 import telebot
+import threading
+import time
 import os
-with open("ulp.txt", "a") as f:
-    f.write("test:test\n") # هادي تصنع ملف تجريبي باش نتأكدو بلي البوت يقدر يقرأ
-    
-# توكن البوت تاعك
+
+# معلومات البوت
 BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# اسم الملف اللي فيه الكومبو (تأكد بلي راهو موجود في GitHub)
-COMBO_FILE = "ulp.txt" 
+# وظيفة الصيد (تشتغل في الخلفية)
+def hunting_process():
+    print("🚀 بدأت عملية الصيد...")
+    while True:
+        # هنا السكربت يكتب في الملف
+        with open("ulp.txt", "a") as f:
+            f.write("shahid:user:pass\n") # مثال تجريبي
+        print("✅ تم تحديث ملف ulp.txt")
+        time.sleep(60) # يصيد كل دقيقة مثلاً
 
-@bot.message_handler(commands=['start'])
-def start(m):
-    bot.reply_to(m, "يا لؤي، راني واجد للصيد! ابعتلي: /url + اسم الموقع")
+# تشغيل الصيد في Thread منفصل باش ما يحبسش البوت
+threading.Thread(target=hunting_process, daemon=True).start()
 
 @bot.message_handler(commands=['url'])
-def hunt_combo(message):
-    # نجبدو الكلمة اللي كتبتها مورا /url
-    target = message.text.replace('/url ', '').strip()
-    
-    if not target or target == "/url":
-        bot.reply_to(message, "لازم تكتب اسم الموقع، مثلا: /url shahid")
-        return
-
-    bot.reply_to(message, f"🔎 راني نحوس على حسابات {target} في الملفات...")
-    
-    found_accounts = []
-    
-    # البحث داخل الملف
-    if os.path.exists(COMBO_FILE):
-        with open(COMBO_FILE, "r", encoding="utf-8", errors="ignore") as f:
-            for line in f:
-                if target.lower() in line.lower():
-                    found_accounts.append(line.strip())
-                
-                # باش ما يبعثش بزاف ويتبلوكا، نحددوه بـ 20 حساب مثلا
-                if len(found_accounts) >= 20:
-                    break
-    
-    if found_accounts:
-        result = "\n".join(found_accounts)
-        bot.reply_to(message, f"✅ لقيتلك هادو:\n\n{result}")
+def find_url(message):
+    target = message.text.replace('/url ', '')
+    if os.path.exists("ulp.txt"):
+        with open("ulp.txt", "r") as f:
+            lines = f.readlines()
+            # يحوس على الكلمة اللي بعثتها
+            results = [l for l in lines if target in l]
+            if results:
+                bot.reply_to(message, "".join(results[:10]))
+            else:
+                bot.reply_to(message, "❌ مالقيت والو لهاد الموقع")
     else:
-        bot.reply_to(message, f"❌ مالقيت والو خاص بـ {target} في ملف ULP.")
+        bot.reply_to(message, "⚠️ الملف مزال ما تصنعش، اصبر شوية")
 
-if __name__ == "__main__":
-    bot.infinity_polling()
-        # مثال بسيط للتجربة، عاود حط كود الصيد تاعك هنا
-        print("🎮 سكريبت الصيد بدأ...")
-        # إذا عندك loop.run_until_complete حطها هنا
-        while True: # هادي باش السكربت ما يحبسش في GitHub
-            import time
-            time.sleep(10)
-            print("🕒 النظام مازال حي...")
-    except Exception as e:
-        print(f"❌ خطأ قاتل في سكريبت الصيد: {e}")
+bot.infinity_polling()
