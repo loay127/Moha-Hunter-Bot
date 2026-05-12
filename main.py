@@ -5,8 +5,8 @@ import os
 
 # إعداداتك
 BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
-api_id = 'YOUR_API_ID'
-api_hash = 'YOUR_API_HASH'
+api_id = '34023364'
+api_hash = 'ad07473755a47402aef9c3d580886cdf'
 TARGET_CHANNEL = 'ComplexCloudLogs'
 COMBO_FILE = "ulp.txt"
 
