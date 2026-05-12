@@ -15,14 +15,8 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: pip install telethon pyTelegramBotAPI
-      - name: Run Scraper and Bot
+      - name: Run Everything
         run: |
-          python main.py & # تشغيل السكربت في الخلفية
-          python bot.py    # تشغيل البوت
-      - name: Save Results
-        run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
-          git add MEGA_STORM_ULP.txt
-          git commit -m "Update ULP Logs from Bot" || exit 0
-          git push
+          python main.py & 
+          sleep 5
+          python bot.py
