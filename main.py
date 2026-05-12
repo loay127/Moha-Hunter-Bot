@@ -1,5 +1,6 @@
 import os
 import re
+import asyncio
 from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 
@@ -8,32 +9,39 @@ api_id = 8029330265
 api_hash = 'ad07473755a47402aef9c3d580886cdf'
 session_str = os.getenv('TELEGRAM_SESSION')
 
-# اسم القناة أو الرابط تاعها
-target_channel = 'COMPLEX_CLOUD_LOGS' # تأكد من كتابة اليوزر صحيح بدون @
+# اسم القناة المستهدفة
+target_channel = 'COMPLEX_CLOUD_LOGS' 
 
-client = TelegramClient(StringSession(session_str), api_id, api_hash)
+async def run_scraper():
+    if not session_str:
+        print("❌ خطأ: TELEGRAM_SESSION غير موجود في إعدادات Secrets!")
+        return
 
-async def main():
+    client = TelegramClient(StringSession(session_str), api_id, api_hash)
+    
     try:
         await client.start()
-        print("✅ تم الدخول للحساب!")
+        print("✅ تم الاتصال بالحساب!")
 
-        # فتح الملف للكتابة
+        # إنشاء الملف في المسار الرئيسي للعمل
         with open("ulp.txt", "w", encoding="utf-8") as f:
-            print(f"🔄 جاري سحب الروابط من {target_channel}...")
+            print(f"🔄 جاري سحب البيانات من {target_channel}...")
             
-            # سحب آخر 100 رسالة من القناة (تقدر تزيد العدد)
-            async for message in client.iter_messages(target_channel, limit=100):
+            # سحب آخر 200 رسالة (تقدر تزيد العدد)
+            async for message in client.iter_messages(target_channel, limit=200):
                 if message.text:
-                    # استخراج الروابط أو النصوص اللي فيها ULP (مثال: http)
-                    urls = re.findall(r'(https?://\S+)', message.text)
-                    for url in urls:
-                        f.write(url + "\n")
+                    # سحب أي نص يشبه الروابط أو صيغ ULP المعينة
+                    # هذا النمط يسحب الروابط، يمكنك تعديله حسب صيغة الـ Logs في القناة
+                    found_items = re.findall(r'(https?://\S+|[a-zA-Z0-9.-]+:[0-9]+:[a-zA-Z0-9]+:[a-zA-Z0-9]+)', message.text)
+                    for item in found_items:
+                        f.write(item + "\n")
         
-        print("✅ تم استخراج الروابط وحفظها في ulp.txt")
-
+        print("✅ تم إنشاء ملف ulp.txt بنجاح!")
+        
     except Exception as e:
-        print(f"❌ خطأ: {e}")
+        print(f"❌ حدث خطأ أثناء السحب: {e}")
+    finally:
+        await client.disconnect()
 
-with client:
-    client.loop.run_until_complete(main())
+if __name__ == "__main__":
+    asyncio.run(run_scraper())
