@@ -4,7 +4,7 @@ from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 
 # معلوماتك
-api_id = 8029330265
+api_id = 34023364
 api_hash = 'ad07473755a47402aef9c3d580886cdf'
 session_str = os.getenv('TELEGRAM_SESSION')
 
