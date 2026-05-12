@@ -15,8 +15,8 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: pip install telethon pyTelegramBotAPI
-      - name: Run Everything
+      - name: Launch Bot and Scraper
         run: |
-          python main.py &
-          sleep 10
-          python bot.py
+          nohup python bot.py & 
+          sleep 5
+          python main.py
