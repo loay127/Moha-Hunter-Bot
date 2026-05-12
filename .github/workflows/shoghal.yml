@@ -1,25 +1,30 @@
-name: SHOGHAL_ULP
+name: ULP_HUNTER_RUN
+
 on:
-  workflow_dispatch: # باش تشغله يدويا
+  workflow_dispatch: # يخليك تشغله بيدك وقت ما تحب
 
 jobs:
-  run_everything:
+  build:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Install Python & Libraries
-        run: |
-          pip install telethon pyTelegramBotAPI requests
+      - name: Checkout Code
+        uses: actions/checkout@v3 # يجيب ملفاتك من المستودع
 
-      - name: Run Script
-        env:
-          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }} # هنا نربطو السر اللي خبيناه بالسكربت
-        run: python main.py
-
-      - name: Upload Result
-        if: always() # حتى لو كاين خطأ، حاول ترفع الملف باش نشوفو المشكل وين
-        uses: actions/upload-artifact@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          name: scraped-urls
-          path: ulp.txt
+          python-version: '3.9' # النسخة المستقرة اللي خدمنا بيها
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install telethon pyTelegramBotAPI # تثبيت المكتبات اللي يحتاجها البوت والصياد
+
+      - name: Run Hunter Bot
+        env:
+          # إذا كنت مستعمل Secrets في GitHub حطهم هنا، وإذا لا، الكود راح يقرأهم من main.py مباشرة
+          API_ID: ${{ secrets.API_ID }}
+          API_HASH: ${{ secrets.API_HASH }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: python main.py # تشغيل الماكينة
