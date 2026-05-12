@@ -1,0 +1,13 @@
+name: FINAL_BOSS_RUN
+on:
+  workflow_dispatch:
+
+jobs:
+  everything:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Force Start
+        run: |
+          pip install telethon pyTelegramBotAPI
+          python -c "import os; os.system('python bot.py & python main.py')"
