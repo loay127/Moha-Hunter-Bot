@@ -1,54 +1,42 @@
 import telebot
 from telethon import TelegramClient, events
 import threading
-import asyncio
 import os
 
-# 1. إعدادات البوت
+# إعداداتك
 BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
-bot = telebot.TeleBot(BOT_TOKEN)
-
-# 2. إعدادات الصياد (Telethon)
-api_id = 'YOUR_API_ID' 
+api_id = 'YOUR_API_ID'
 api_hash = 'YOUR_API_HASH'
-client = TelegramClient('Moha_Session', api_id, api_hash)
-
-# اسم القناة المستهدفة (تأكد من كتابة اليوزر نيم تاعها بدون @ أو الـ ID)
-TARGET_CHANNEL = 'ComplexCloudLogs' 
-
+TARGET_CHANNEL = 'ComplexCloudLogs'
 COMBO_FILE = "ulp.txt"
 
-# 3. وظيفة الصيد من القناة المحددة
-@client.on(events.NewMessage(chats=TARGET_CHANNEL))
-async def hunter_handler(event):
-    msg = event.raw_text
-    # نفلترو الرسائل اللي فيها ايميل وباسورد (User:Pass)
-    if ":" in msg:
-        with open(COMBO_FILE, "a", encoding="utf-8") as f:
-            f.write(msg + "\n")
-        print(f"🎯 صيد جديد من القناة: {msg[:30]}...")
+bot = telebot.TeleBot(BOT_TOKEN)
+client = TelegramClient('Moha_Session', api_id, api_hash)
 
-# 4. أمر البوت للاستخراج
+# أول ما يلقى حساب يبعثولك فوراً في تليجرام (مش لازم تستنى الملف)
+@client.on(events.NewMessage(chats=TARGET_CHANNEL))
+async def hunter(event):
+    msg = event.raw_text
+    if ":" in msg:
+        with open(COMBO_FILE, "a") as f:
+            f.write(msg + "\n")
+        # يبعثلك "صيد طري" فوراً
+        bot.send_message(CHAT_ID_TA3EK, f"🎯 صيد جديد:\n{msg}")
+
 @bot.message_handler(commands=['url'])
-def get_combo(message):
+def search(message):
     query = message.text.replace('/url', '').strip().lower()
     if os.path.exists(COMBO_FILE):
-        with open(COMBO_FILE, "r", encoding="utf-8", errors="ignore") as f:
-            lines = f.readlines()
-            # يحوس على الكلمة (مثلا shahid) لداخل السطور اللي صيدناهم
-            results = [l.strip() for l in lines if query in l.lower()]
-            
-            if results:
-                bot.reply_to(message, "✅ هاهي الحسابات اللي لقيتها:\n\n" + "\n".join(results[:15]))
-            else:
-                bot.reply_to(message, f"❌ مالقيتش '{query}' في الصيد تاع القناة ضرك.")
+        with open(COMBO_FILE, "r") as f:
+            res = [line for line in f if query in line.lower()]
+            bot.reply_to(message, "\n".join(res[:10]) if res else "❌ مالقيت والو")
     else:
-        bot.reply_to(message, "⏳ الماكينة مزال ما بدأت الصيد، اصبر شوية.")
+        bot.reply_to(message, "⏳ الماكينة راهي تجمع، اصبر شوية")
 
-def run_bot():
-    bot.infinity_polling()
-
-if __name__ == "__main__":
-    threading.Thread(target=run_bot, daemon=True).start()
+def start():
+    threading.Thread(target=lambda: bot.infinity_polling(), daemon=True).start()
     client.start()
     client.run_until_disconnected()
+
+if __name__ == "__main__":
+    start()
