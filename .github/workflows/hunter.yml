@@ -1,8 +1,8 @@
-name: ULP Storm 24/7
+name: ULP Storm & Bot 24/7
 on:
   schedule:
-    - cron: '0 * * * *' # يخدم كل ساعة
-  workflow_dispatch: # تشغيل يدويا
+    - cron: '0 * * * *'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,13 +14,15 @@ jobs:
         with:
           python-version: '3.9'
       - name: Install dependencies
-        run: pip install telethon
-      - name: Run Scraper
-        run: python main.py
+        run: pip install telethon pyTelegramBotAPI
+      - name: Run Scraper and Bot
+        run: |
+          python main.py & # تشغيل السكربت في الخلفية
+          python bot.py    # تشغيل البوت
       - name: Save Results
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
           git add MEGA_STORM_ULP.txt
-          git commit -m "Update ULP Logs" || exit 0
+          git commit -m "Update ULP Logs from Bot" || exit 0
           git push
