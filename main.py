@@ -1,58 +1,34 @@
-from telethon import TelegramClient, functions, types
-import re
+import telebot
 import os
+import threading
+from telethon import TelegramClient, events
 
-# --- إعدادات الحساب ---
-API_ID = 34023364
-API_HASH = 'ad07473755a47402aef9c3d580886cdf'
+# --- إعدادات البوت (الواجهة) ---
+BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
+bot = telebot.TeleBot(BOT_TOKEN)
+FILE_PATH = 'MEGA_STORM_ULP.txt'
 
-# --- القناة الواحدة للتجربة ---
-# حط هنا يوزر القناة اللي راك حاب تتيستي بيها (بدون @)
-TARGET_CHANNEL = 'COMPLEX CL*UD|L*GS' 
+@bot.message_handler(commands=['start'])
+def start(m): bot.reply_to(m, "يا لؤي، راني شغال ونصيد! ابعثلي برك واش تحوس.")
 
-TARGET_FILE = "TEST_EXTRACT.txt"
-client = TelegramClient('Moha_Session', API_ID, API_HASH)
+@bot.message_handler(func=lambda m: True)
+def search(m):
+    if not os.path.exists(FILE_PATH):
+        return bot.reply_to(m, "مزال ما كملتش الصيد، اصبر شوية.")
+    query = m.text.lower()
+    with open(FILE_PATH, 'r') as f:
+        res = [l.strip() for l in f if query in l.lower()]
+    bot.reply_to(m, f"✅ لقيت {len(res)} نتيجة:\n\n" + "\n".join(res[:15]) if res else "❌ مالقيت والو.")
 
-async def main():
-    print(f"--- جاري بدء التيست على قناة: {TARGET_CHANNEL} ---")
+def run_bot(): bot.infinity_polling()
+
+# --- إعدادات سكريبت الصيد (الماكينة) ---
+# حط هنا كود الـ Telethon تاعك اللي كان في main.py مقبيل
+# ... (الكود القديم تاعك) ...
+
+if __name__ == "__main__":
+    # تشغيل البوت في خيط (Thread) منفصل
+    threading.Thread(target=run_bot, daemon=True).start()
     
-    try:
-        # محاولة الوصول للقناة
-        entity = await client.get_entity(TARGET_CHANNEL)
-        print(f"[+] تم الاتصال بالقناة بنجاح: {entity.title}")
-        
-        count = 0
-        # فحص آخر 50 رسالة فقط للتيست السريع
-        async for message in client.iter_messages(entity, limit=50):
-            
-            # سحب الحسابات من الملفات
-            if message.document and (message.file.ext in ['.txt', '.log']):
-                print(f"   [*] جاري تحميل ملف: {message.file.name}")
-                path = await message.download_media()
-                
-                with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-                    with open(TARGET_FILE, "a", encoding='utf-8') as out:
-                        for line in f:
-                            matches = re.findall(r'([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|[a-zA-Z0-9._-]+):([a-zA-Z0-9!@#$%^&*._-]+)', line)
-                            for m in matches:
-                                out.write(f"{m[0]}:{m[1]}\n")
-                                count += 1
-                os.remove(path)
-                
-            # سحب الحسابات من النصوص
-            elif message.text:
-                matches = re.findall(r'([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|[a-zA-Z0-9._-]+):([a-zA-Z0-9!@#$%^&*._-]+)', message.text)
-                if matches:
-                    with open(TARGET_FILE, "a", encoding='utf-8') as out:
-                        for m in matches:
-                            out.write(f"{m[0]}:{m[1]}\n")
-                            count += 1
-        
-        print(f"\n[DONE] التيست خلص. لقيت {count} حساب.")
-        print(f"تلقاهم في ملف: {TARGET_FILE}")
-
-    except Exception as e:
-        print(f"[!] كاين مشكلة في الوصول لهاد القناة: {e}")
-
-with client:
-    client.loop.run_until_complete(main())
+    # هنا كود تشغيل السكريبت تاعك (Client.run_until_disconnected)
+    print("الكل شغال ضرك...")
