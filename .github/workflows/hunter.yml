@@ -3,11 +3,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  The-Monster:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Setup & Run
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Everything
         run: |
           pip install telethon pyTelegramBotAPI
-          python bot.py & sleep 15 && python main.py
+      - name: Run Bot and Scraper
+        run: |
+          python bot.py &
+          sleep 10
+          python main.py
