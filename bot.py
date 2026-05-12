@@ -1,45 +1,42 @@
-
 import telebot
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
 import os
-import subprocess
-import multiprocessing
-import time
 
-TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
-bot = telebot.TeleBot(TOKEN)
-FILE_PATH = 'MEGA_STORM_ULP.txt'
+# الإعدادات
+BOT_TOKEN = 'حط_توكن_بوتك_هنا'
+api_id = 8029330265
+api_hash = 'ad07473755a47402aef9c3d580886cdf'
+session_str = os.getenv('TELEGRAM_SESSION')
+my_storage_channel = 'https://t.me/+FVbinze0Xk4wYjlk'
 
-# دالة تشغيل سكربت الصيد (main.py)
-def run_scraper():
-    print("بدأ تشغيل سكربت الصيد...")
-    subprocess.run(["python", "main.py"])
+bot = telebot.TeleBot(BOT_TOKEN)
+client = TelegramClient(StringSession(session_str), api_id, api_hash)
+client.start()
 
-@bot.message_handler(commands=['start'])
-def send_welcome(message):
-    bot.reply_to(message, "أهلا لؤي! راني خدام ضرك، ابعثلي الكلمة اللي تحوس عليها.")
-
-@bot.message_handler(func=lambda message: True)
-def search_combo(message):
-    keyword = message.text.lower()
-    results = []
-    if not os.path.exists(FILE_PATH):
-        bot.reply_to(message, "الملف مازال ما وجدش، السكربت راهو يجمع في الداتا.")
+@bot.message_handler(commands=['url'])
+def search_handler(message):
+    query = message.text.replace('/url ', '').strip()
+    if not query:
+        bot.reply_to(message, "⚠️ أرسل الرابط بعد الأمر، مثال: /url google.com")
         return
-    with open(FILE_PATH, 'r', encoding='utf-8') as f:
-        for line in f:
-            if keyword in line.lower():
-                results.append(line.strip())
-    if results:
-        bot.reply_to(message, f"✅ لقيتلك {len(results)} نتيجة:\n\n" + "\n".join(results[:15]))
-    else:
-        bot.reply_to(message, "❌ مالقيت والو.")
 
-if __name__ == "__main__":
-    # تشغيل السكربت في عملية منفصلة
-    p = multiprocessing.Process(target=run_scraper)
-    p.start()
+    bot.reply_to(message, f"🔍 جاري البحث عن {query} في المخزن...")
     
-    # تشغيل البوت في العملية الرئيسية
-    print("البوت شغال ضرك...")
-    bot.infinity_polling(timeout=10, long_polling_timeout=5)
+    results = []
+    # البحث داخل رسائل قناتك الخاصة مباشرة
+    for msg in client.iter_messages(my_storage_channel, search=query):
+        if msg.text:
+            results.append(msg.text)
+    
+    if results:
+        # حفظ أول 20 نتيجة في ملف وإرساله
+        with open("search_results.txt", "w", encoding="utf-8") as f:
+            f.write("\n\n".join(results))
+        
+        with open("search_results.txt", "rb") as doc:
+            bot.send_document(message.chat.id, doc, caption=f"✅ وجدنا {len(results)} نتيجة لـ {query}")
+    else:
+        bot.reply_to(message, "❌ لم نجد أي نتائج لهذا الرابط.")
 
+bot.polling()
