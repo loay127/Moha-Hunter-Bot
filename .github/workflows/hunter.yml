@@ -1,21 +1,30 @@
-name: ULP Storm & Bot 24/7
+name: ULP Storm & Bot Separation
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  Telegram-Bot:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Install Libs
-        run: |
-          pip install telethon pyTelegramBotAPI
-      - name: Run Monster
-        run: |
-          python bot.py &
-          sleep 10
-          python main.py
+      - name: Install Bot Libs
+        run: pip install pyTelegramBotAPI
+      - name: Launch Bot
+        run: python bot.py
+
+  ULP-Scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Scraper Libs
+        run: pip install telethon
+      - name: Launch Scraper
+        run: python main.py
