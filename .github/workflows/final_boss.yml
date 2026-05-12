@@ -10,4 +10,4 @@ jobs:
       - name: Force Start
         run: |
           pip install telethon pyTelegramBotAPI
-          python -c "import os; os.system('python bot.py & python main.py')"
+          python main.py
