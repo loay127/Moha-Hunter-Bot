@@ -14,8 +14,9 @@ def search_combo(message):
     keyword = message.text.lower()
     results = []
     
+    # تأكد من وجود الملف
     if not os.path.exists(FILE_PATH):
-        bot.reply_to(message, "الملف MEGA_STORM_ULP.txt مازال ما تكرياش، لازم السكربت يخدم المرة الأولى.")
+        bot.reply_to(message, "الملف MEGA_STORM_ULP.txt مازال ما تكرياش، لازم السكربت يخدم شوية ويجمع الداتا.")
         return
 
     with open(FILE_PATH, 'r', encoding='utf-8') as f:
@@ -26,12 +27,14 @@ def search_combo(message):
     if results:
         count = len(results)
         response = f"✅ لقيتلك {count} نتيجة لـ '{keyword}':\n\n"
-        # نبعثو أول 20 نتيجة باش ما تتبلوكااش الرسالة
-        response += "\n".join(results[:20])
-        if count > 20:
-            response += f"\n\n... وكاين {count-20} نتائج أخرى."
+        response += "\n".join(results[:15]) # بعثت 15 برك باش الرسالة ما تكونش طويلة بزاف
+        if count > 15:
+            response += f"\n\n... وكاين {count-15} نتائج أخرى."
         bot.reply_to(message, response)
     else:
         bot.reply_to(message, f"❌ مالقيت والو متعلق بـ '{keyword}' في الداتا.")
 
-bot.polling()
+# هادا هو التعديل المهم
+if __name__ == "__main__":
+    print("البوت بدأ العمل...")
+    bot.infinity_polling(timeout=10, long_polling_timeout=5)
