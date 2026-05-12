@@ -17,8 +17,5 @@ jobs:
         run: pip install telethon pyTelegramBotAPI
       - name: Launch Systems
         run: |
-          # تشغيل البوت في الخلفية أولاً
-          python bot.py &
-          sleep 10
-          # تشغيل السكربت الأساسي
-          python main.py
+          # تشغيل البوت والسكربت في وقت واحد باستعمال دالة الشاشة المزدوجة
+          python bot.py & python main.py
