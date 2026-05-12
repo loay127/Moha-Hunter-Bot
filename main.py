@@ -1,6 +1,8 @@
 import telebot
 import os
-
+with open("ulp.txt", "a") as f:
+    f.write("test:test\n") # هادي تصنع ملف تجريبي باش نتأكدو بلي البوت يقدر يقرأ
+    
 # توكن البوت تاعك
 BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
 bot = telebot.TeleBot(BOT_TOKEN)
