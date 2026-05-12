@@ -1,4 +1,13 @@
-      - name: Debug and Run
+name: FINAL_FIX_ULP
+on:
+  workflow_dispatch:
+
+jobs:
+  everything:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Start Everything
         run: |
           pip install pyTelegramBotAPI telethon
           python main.py
