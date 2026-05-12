@@ -6,8 +6,16 @@ jobs:
   run_everything:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Start
         run: |
           pip install telethon pyTelegramBotAPI
           python main.py
+
+      - name: Upload Result
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraped-urls
+          path: ulp.txt
