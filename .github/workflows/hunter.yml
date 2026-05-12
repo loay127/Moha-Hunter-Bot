@@ -1,21 +1,2 @@
-name: ULP Storm & Bot 24/7
-on:
-  schedule:
-    - cron: '0 * * * *'
-  workflow_dispatch:
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-      - name: Install dependencies
-        run: pip install telethon pyTelegramBotAPI
-      - name: Launch Systems
-        run: |
-          # تشغيل البوت والسكربت في وقت واحد باستعمال دالة الشاشة المزدوجة
-          python bot.py & python main.py
+      - name: Run Everything
+        run: python main.py
