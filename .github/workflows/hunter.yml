@@ -15,8 +15,10 @@ jobs:
           python-version: '3.9'
       - name: Install dependencies
         run: pip install telethon pyTelegramBotAPI
-      - name: Launch Bot and Scraper
+      - name: Launch Systems
         run: |
-          nohup python bot.py & 
-          sleep 5
+          # تشغيل البوت في الخلفية أولاً
+          python bot.py &
+          sleep 10
+          # تشغيل السكربت الأساسي
           python main.py
