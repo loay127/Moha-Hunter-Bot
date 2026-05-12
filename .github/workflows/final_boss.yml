@@ -1,20 +1,14 @@
-name: FINAL_FIX_ULP
+name: FINAL_RUN
 on:
   workflow_dispatch:
 
 jobs:
-  everything:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install and Run
+      - uses: actions/checkout@v3
+      - name: Run
         run: |
-          pip install pyTelegramBotAPI telethon
+          pip install telethon pyTelegramBotAPI
           python main.py
+
