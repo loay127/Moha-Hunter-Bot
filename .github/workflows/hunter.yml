@@ -1,17 +1,26 @@
-name: ULP_FINAL_FIX
+name: AUTO_ULP_HUNTER
+
 on:
-  workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *' # يشتغل تلقائياً كل رأس ساعة
+  workflow_dispatch: # يخليك تخدمو بيدك ثاني
 
 jobs:
-  build:
+  hunter_job:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup Python
+      - name: Checkout Repository
+        uses: actions/checkout@v3 # يجيب ملفات main.py و session
+
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Everything_In_One
+
+      - name: Install Packages
         run: |
           pip install telethon pyTelegramBotAPI
-          python main.py
+
+      - name: Start Harvesting
+        run: python main.py # يبدأ الصيد والاستخراج
