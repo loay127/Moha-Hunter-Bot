@@ -1,64 +1,53 @@
 import telebot
+from telethon import TelegramClient, events
 import threading
-import time
+import asyncio
 import os
 
-# 1. إعداد البوت
+# 1. إعدادات البوت (التوكن تاعك)
 BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# اسم الملف اللي راح يتصيد فيه الكومبو
+# 2. إعدادات الصياد (الـ Hash والـ API ID تاعك)
+api_id = 'YOUR_API_ID' 
+api_hash = 'YOUR_API_HASH'
+client = TelegramClient('Moha_Session', api_id, api_hash)
+
+# اسم الملف اللي راح يتصنع ويتحدث آلياً
 COMBO_FILE = "ulp.txt"
 
-# 2. وظيفة الصيد (تشتغل في الخلفية)
-def start_hunting():
-    print("🚀 الماكينة بدأت الصيد في الخلفية...")
-    while True:
-        try:
-            # هنا تحط كود السكربت اللي يصيد (Telethon أو غيره)
-            # كمثال: راح نكتب سطر تجريبي باش تتأكد بلي الملف شغال
-            with open(COMBO_FILE, "a", encoding="utf-8") as f:
-                f.write("shahid.net:loay_pro:password123\n")
-            
-            print(f"✅ تم تحديث {COMBO_FILE}")
-            time.sleep(60) # يصيد كل دقيقة
-        except Exception as e:
-            print(f"❌ خطأ في الصيد: {e}")
-            time.sleep(10)
+# 3. وظيفة الصيد: تسمع للقنوات وتخزن في الملف
+@client.on(events.NewMessage)
+async def my_event_handler(event):
+    message_text = event.raw_text
+    # هنا الكود يفلتر الرسائل ويجبد الحسابات (User:Pass)
+    if ":" in message_text: 
+        with open(COMBO_FILE, "a", encoding="utf-8") as f:
+            f.write(message_text + "\n")
+        print("✅ تم صيد حساب جديد وحفظه!")
 
-# تشغيل وظيفة الصيد في "خيط" (Thread) منفصل
-threading.Thread(target=start_hunting, daemon=True).start()
-
-# 3. أوامر البوت في تليجرام
-@bot.message_handler(commands=['start'])
-def welcome(message):
-    bot.reply_to(message, "يا لؤي، البوت والصياد راهم خدامين 100%! 🎯\nاستعمل /url + اسم الموقع باش نجبدلك الحسابات.")
-
+# 4. أوامر البوت للاستخراج
 @bot.message_handler(commands=['url'])
-def search_combo(message):
-    # نجبدو الكلمة اللي كتبتها مورا /url
+def get_combo(message):
     query = message.text.replace('/url', '').strip().lower()
-    
-    if not query:
-        bot.reply_to(message, "لازم تكتب واش راك تحوس، مثلاً: /url shahid")
-        return
-
-    bot.reply_to(message, f"🔎 جاري البحث عن '{query}' في ملفات ULP...")
-
-    results = []
     if os.path.exists(COMBO_FILE):
-        with open(COMBO_FILE, "r", encoding="utf-8", errors="ignore") as f:
-            for line in f:
-                if query in line.lower():
-                    results.append(line.strip())
-                if len(results) >= 15: # نبعثو أول 15 حساب لقاه
-                    break
-    
-    if results:
-        bot.reply_to(message, "✅ لقيتلك هاد الحسابات:\n\n" + "\n".join(results))
+        with open(COMBO_FILE, "r") as f:
+            lines = f.readlines()
+            results = [l for l in lines if query in l.lower()]
+            if results:
+                bot.reply_to(message, "✅ لقيتلك هادو من الصيد الحالي:\n\n" + "\n".join(results[:10]))
+            else:
+                bot.reply_to(message, "❌ مزال ما صيدناش حسابات لهاد الموقع.")
     else:
-        bot.reply_to(message, f"❌ مالقيت حتى حساب خاص بـ '{query}' حالياً.")
+        bot.reply_to(message, "⏳ الماكينة بدأت ضرك، مزال ما تعمرش الملف.")
 
-# 4. تشغيل البوت
-print("🤖 البوت راهو يدور ضرك...")
-bot.infinity_polling()
+# وظيفة لتشغيل البوت والصياد معاً
+def run_bot():
+    bot.infinity_polling()
+
+if __name__ == "__main__":
+    # تشغيل البوت في خيط منفصل
+    threading.Thread(target=run_bot, daemon=True).start()
+    # تشغيل الصياد (Telethon)
+    client.start()
+    client.run_until_disconnected()
