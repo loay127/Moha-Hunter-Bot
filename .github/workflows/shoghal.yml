@@ -1,20 +1,24 @@
 name: SHOGHAL_ULP
 on:
-  workflow_dispatch:
+  workflow_dispatch: # باش تشغله يدويا
 
 jobs:
   run_everything:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Start
+      - uses: actions/checkout@v3
+      
+      - name: Install Python & Libraries
         run: |
-          pip install telethon pyTelegramBotAPI
-          python main.py
+          pip install telethon pyTelegramBotAPI requests
+
+      - name: Run Script
+        env:
+          TELEGRAM_SESSION: ${{ secrets.TELEGRAM_SESSION }} # هنا نربطو السر اللي خبيناه بالسكربت
+        run: python main.py
 
       - name: Upload Result
+        if: always() # حتى لو كاين خطأ، حاول ترفع الملف باش نشوفو المشكل وين
         uses: actions/upload-artifact@v4
         with:
           name: scraped-urls
