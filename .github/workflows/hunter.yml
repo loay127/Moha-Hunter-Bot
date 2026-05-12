@@ -17,6 +17,6 @@ jobs:
         run: pip install telethon pyTelegramBotAPI
       - name: Run Everything
         run: |
-          python main.py & 
-          sleep 5
+          python main.py &
+          sleep 10
           python bot.py
