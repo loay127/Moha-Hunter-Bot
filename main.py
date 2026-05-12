@@ -1,34 +1,39 @@
-import os
-import asyncio
+import telebot
 from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
+import os
 
-# معلوماتك
+# إعداداتك
+BOT_TOKEN = '8645297843:AAE7x0GWqbXlJRNv7I2Qt14nenCEL9IiIs8'
 api_id = 34023364
 api_hash = 'ad07473755a47402aef9c3d580886cdf'
 session_str = os.getenv('TELEGRAM_SESSION')
+my_storage = 'MyUlpStorage_Loay'
 
-# القناة المصدر وقناتك الجديدة (المخزن)
-source_channel = 'COMPLEX_CLOUD_LOGS' 
-my_storage_channel = 'https://t.me/+FVbinze0Xk4wYjlk' # قناتك اللي أنشأتها الآن
+bot = telebot.TeleBot(BOT_TOKEN)
+client = TelegramClient(StringSession(session_str), api_id, api_hash)
+client.start()
 
-async def update_storage():
-    client = TelegramClient(StringSession(session_str), api_id, api_hash)
-    try:
-        await client.start()
-        print("✅ متصل بالحساب.. جاري تحديث المخزن")
-        
-        # سحب آخر 100 رسالة وإرسالها لقناتك
-        async for message in client.iter_messages(source_channel, limit=100):
-            if message.text:
-                # نرسل النص مباشرة لقناتك ليكون قابلاً للبحث لاحقاً
-                await client.send_message(my_storage_channel, message.text)
-        
-        print("✅ تم نقل البيانات بنجاح لقناتك.")
-    except Exception as e:
-        print(f"❌ خطأ: {e}")
-    finally:
-        await client.disconnect()
+@bot.message_handler(commands=['url'])
+def search_handler(message):
+    query = message.text.replace('/url ', '').strip()
+    if not query:
+        bot.reply_to(message, "🔍 اكتب الرابط، مثال: /url target.com")
+        return
 
-if __name__ == "__main__":
-    asyncio.run(update_storage())
+    bot.reply_to(message, "🔎 جاري فحص المخزن...")
+    
+    results = []
+    # البحث في القناة العامة
+    for msg in client.iter_messages(my_storage, search=query):
+        results.append(msg.text)
+    
+    if results:
+        with open("res.txt", "w", encoding="utf-8") as f:
+            f.write("\n\n".join(results))
+        with open("res.txt", "rb") as d:
+            bot.send_document(message.chat.id, d, caption=f"✅ وجدنا {len(results)} نتيجة.")
+    else:
+        bot.reply_to(message, "❌ ملقينا والو.")
+
+bot.polling()
