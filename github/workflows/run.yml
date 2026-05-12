@@ -1,8 +1,8 @@
 name: ULP Storm 24/7
 on:
   schedule:
-    - cron: '0 * * * *' # يخدم وحدو كل ساعة
-  workflow_dispatch: # تقدر تشغلو يدويا وقت ما تحب
+    - cron: '0 * * * *' # يخدم كل ساعة
+  workflow_dispatch: # تشغيل يدويا
 
 jobs:
   build:
@@ -17,7 +17,7 @@ jobs:
         run: pip install telethon
       - name: Run Scraper
         run: python main.py
-      - name: Commit and Push changes
+      - name: Save Results
         run: |
           git config --global user.name 'github-actions'
           git config --global user.email 'github-actions@github.com'
